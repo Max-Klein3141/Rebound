@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebound — Try a recovery session</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E0F0C; --ink2:#1B1C18; --ink3:#2A2B26; --line:#2E2F2A;
+    --paper:#F3F1EB; --soft:#A8A49A; --orange:#FF5B1F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--ink);color:var(--paper);font-family:'Inter',system-ui,-apple-system,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;display:flex;justify-content:center}
+  .app{width:100%;max-width:460px;min-height:100vh;display:flex;flex-direction:column;padding:20px 18px 28px}
+  .top{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 18px;border-bottom:1px solid var(--line)}
+  .brand{font-family:'Inter Tight',Arial,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--orange);display:inline-block}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft)}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
+  .progress{height:4px;background:var(--ink3);border-radius:4px;margin:14px 0 4px;overflow:hidden}
+  .bar{height:100%;width:0;background:var(--orange);transition:width .4s ease}
+  .meta{display:flex;justify-content:space-between;color:var(--soft);margin-bottom:8px}
+
+  /* intro */
+  .intro{display:flex;flex-direction:column;gap:16px;padding-top:22px}
+  h1{font-family:'Inter Tight',Arial,sans-serif;font-weight:700;font-size:32px;line-height:1.08;letter-spacing:-1px}
+  .missed{background:var(--ink2);border:1px solid var(--line);border-radius:20px;padding:18px}
+  .missed .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .course{font-family:'Inter Tight',Arial,sans-serif;font-weight:700;font-size:20px}
+  .note{background:var(--paper);color:var(--ink);border-radius:20px;padding:18px}
+  .note .mono{color:#B93A0B;margin-bottom:10px;display:block}
+  .note ol{padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.4}
+  .sub{color:var(--soft);font-size:15px;line-height:1.45}
+  .btn{appearance:none;border:none;cursor:pointer;font:inherit;font-weight:600;font-size:16px;background:var(--orange);color:var(--ink);border-radius:999px;padding:16px 20px;width:100%;transition:transform .08s ease}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:transparent;color:var(--paper);border:1px solid var(--line)}
+
+  /* chat */
+  .chat{flex:1;display:flex;flex-direction:column;gap:10px;padding:14px 0 10px;overflow-y:auto}
+  .msg{max-width:86%;padding:13px 16px;border-radius:20px;font-size:15.5px;line-height:1.45;animation:in .25s ease both}
+  .tutor{background:var(--ink3);align-self:flex-start;border-bottom-left-radius:6px}
+  .tutor.good{border-left:3px solid var(--orange)}
+  .me{background:var(--orange);color:var(--ink);align-self:flex-end;border-bottom-right-radius:6px;font-weight:500}
+  .q{font-weight:600}
+  .concept{align-self:center;color:var(--soft);margin:8px 0 2px}
+  .typing{background:var(--ink3);align-self:flex-start;border-radius:20px;padding:14px 16px;display:flex;gap:5px}
+  .typing span{width:6px;height:6px;border-radius:50%;background:var(--soft);animation:blink 1s infinite}
+  .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+  .options{display:flex;flex-direction:column;gap:8px;padding-top:6px}
+  .opt{appearance:none;cursor:pointer;font:inherit;font-size:15px;text-align:left;background:transparent;color:var(--paper);border:1px solid #4A4A43;border-radius:16px;padding:14px 16px;line-height:1.35;transition:background .15s,border-color .15s}
+  .opt:hover{border-color:var(--orange)}
+  .opt:disabled{opacity:.35;cursor:default;border-color:var(--line)}
+
+  /* result */
+  .result{display:flex;flex-direction:column;gap:14px;padding-top:20px;animation:in .3s ease both}
+  .big{font-family:'Inter Tight',Arial,sans-serif;font-weight:700;font-size:56px;letter-spacing:-2px;line-height:1;color:var(--orange)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{background:var(--ink2);border:1px solid var(--line);border-radius:18px;padding:14px}
+  .card .v{font-family:'Inter Tight',Arial,sans-serif;font-weight:700;font-size:20px;margin-top:6px}
+  .card .mono{color:var(--soft);font-size:11px}
+  .advisor{background:var(--paper);color:var(--ink);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px}
+  .advisor .mono{color:#B93A0B;font-size:11px}
+  .foot{margin-top:auto;padding-top:22px;color:#6E6B62;font-size:12px;text-align:center;line-height:1.5}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const steps = [
+  {concept:1, label:"Concept 1 of 3 · Sunk costs",
+   tutor:["Your company bought a machine last year for $40,000.","Today you’re deciding whether to keep it or replace it."],
+   q:"Does the $40,000 matter for today’s decision?",
+   options:[
+     {t:"Yes. We paid for it.", ok:false, fb:"Here’s a question back: can you get that $40,000 back, whichever option you choose?"},
+     {t:"No. It’s already spent.", ok:true, fb:"Exactly. That money is gone either way. A cost that can’t change between your options is sunk, and sunk costs are never relevant."}
+   ]},
+  {concept:2, label:"Concept 2 of 3 · Relevant costs",
+   tutor:["Relevant costs are future costs that differ between your options.","Keep the old machine: $12,000 a year to run.\nReplace it: the new one costs $15,000, then $6,000 a year to run."],
+   q:"Which costs belong in the decision?",
+   options:[
+     {t:"The old machine’s original $40,000", ok:false, fb:"That’s the sunk cost from a minute ago. Which numbers actually change depending on what you choose?"},
+     {t:"Both running costs and the new machine’s price", ok:true, fb:"Right. Each of those changes with your choice, so each one is relevant."},
+     {t:"Only the new machine’s $15,000", ok:false, fb:"Close. Does the yearly running cost stay the same whichever machine you use?"}
+   ]},
+  {concept:2, label:null,
+   tutor:["Now put numbers on it for the next 3 years."],
+   q:"How much does replacing save over 3 years?",
+   options:[
+     {t:"$18,000", ok:false, fb:"That’s only the running-cost savings: 3 × ($12,000 − $6,000). What did the new machine cost up front?"},
+     {t:"$3,000", ok:true, fb:"Yes. Keeping: 3 × $12,000 = $36,000. Replacing: $15,000 + 3 × $6,000 = $33,000. Replacing saves $3,000."},
+     {t:"It costs $15,000 more", ok:false, fb:"You counted the new machine’s price. What happens to the yearly running cost after you replace it?"}
+   ]},
+  {concept:3, label:"Concept 3 of 3 · Opportunity cost",
+   tutor:["Last idea: a cost can count even when no cash leaves your account.","If you replace the old machine, you can sell it today for $5,000."],
+   q:"Is that $5,000 relevant?",
+   options:[
+     {t:"No. It isn’t an expense we pay.", ok:false, fb:"Look at it from the other side: if you keep the old machine, what do you give up?"},
+     {t:"Yes. Keeping the machine means giving it up.", ok:true, fb:"Exactly. Keeping the old machine has a hidden cost: the $5,000 you’d give up. That’s an opportunity cost."}
+   ]},
+  {concept:3, label:null,
+   tutor:["Put it all together."],
+   q:"Including the $5,000 sale, how much does replacing save?",
+   options:[
+     {t:"$3,000", ok:false, fb:"That was before the sale. What does selling the old machine add?"},
+     {t:"−$2,000", ok:false, fb:"Selling the machine brings money in, not out. Which way should it move the savings?"},
+     {t:"$8,000", ok:true, fb:"That’s it: $3,000 in lower costs plus $5,000 from the sale. And the original $40,000 never entered the math."}
+   ]}
+];
+
+const app = document.getElementById('app');
+let i = 0, firstTry = 0, attempts = 0, startTime = 0;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+
+function header(){
+  return `<div class="top"><div class="brand"><span class="dot"></span>Rebound</div><div class="tag">Prototype</div></div>`;
+}
+
+function intro(){
+  app.innerHTML = header() + `
+  <div class="intro">
+    <div class="mono" style="color:var(--orange)">Missed class detected</div>
+    <h1>You missed Monday’s Accounting II class.</h1>
+    <div class="missed">
+      <div class="row"><div class="course">Relevant costs</div><div class="tag">Monday</div></div>
+      <div class="sub" style="margin-top:6px">You were traveling: away game at Providence.</div>
+    </div>
+    <div class="note">
+      <span class="mono">What your professor said mattered</span>
+      <ol>
+        <li>Only future costs that differ between options are relevant.</li>
+        <li>Sunk costs never belong in the decision.</li>
+        <li>Opportunity costs count, even when no cash moves.</li>
+      </ol>
+    </div>
+    <div class="sub">About 5 minutes · 5 questions · I’ll ask before I tell.</div>
+    <button class="btn" id="start">Start recovery</button>
+  </div>
+  <div class="foot">Scripted prototype session. The professor’s note is an example.</div>`;
+  document.getElementById('start').onclick = startSession;
+}
+
+function startSession(){
+  startTime = Date.now();
+  app.innerHTML = header() + `
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="meta mono"><span>Accounting II · Relevant costs</span><span id="count">1 / ${steps.length}</span></div>
+    <div class="chat" id="chat"></div>
+    <div class="options" id="opts"></div>`;
+  runStep();
+}
+
+async function say(text, extra){
+  const chat = document.getElementById('chat');
+  const t = el('div','typing','<span></span><span></span><span></span>');
+  chat.appendChild(t); scroll();
+  await sleep(550);
+  t.remove();
+  const m = el('div','msg tutor' + (extra ? ' ' + extra : ''), esc(text));
+  chat.appendChild(m); scroll();
+  await sleep(250);
+}
+
+function scroll(){ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
+
+async function runStep(){
+  const s = steps[i];
+  attempts = 0;
+  document.getElementById('bar').style.width = (i / steps.length * 100) + '%';
+  document.getElementById('count').textContent = (i + 1) + ' / ' + steps.length;
+  const chat = document.getElementById('chat');
+  if (s.label) chat.appendChild(el('div','concept mono', s.label));
+  for (const line of s.tutor) await say(line);
+  await say(s.q, 'q');
+  renderOptions(s);
+}
+
+function renderOptions(s){
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+  s.options.forEach(o => {
+    const b = el('button','opt', esc(o.t));
+    b.onclick = () => answer(s, o, b);
+    opts.appendChild(b);
+  });
+  scroll();
+}
+
+async function answer(s, o, btn){
+  const opts = document.getElementById('opts');
+  const chat = document.getElementById('chat');
+  [...opts.children].forEach(b => b.disabled = true);
+  chat.appendChild(el('div','msg me', esc(o.t)));
+  attempts++;
+  if (o.ok){
+    if (attempts === 1) firstTry++;
+    opts.innerHTML = '';
+    await say(o.fb, 'good');
+    i++;
+    if (i < steps.length){ await sleep(350); runStep(); }
+    else { await sleep(700); result(); }
+  } else {
+    await say(o.fb);
+    [...opts.children].forEach(b => { if (b !== btn) b.disabled = false; });
+    scroll();
+  }
+}
+
+function result(){
+  const secs = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+  const time = Math.floor(secs/60) + ':' + String(secs % 60).padStart(2,'0');
+  const strong = firstTry >= 4;
+  const d = new Date(); d.setDate(d.getDate() + 3);
+  const day = d.toLocaleDateString('en-US',{weekday:'long'});
+  app.innerHTML = header() + `
+  <div class="result">
+    <div class="mono" style="color:var(--soft)">Session complete</div>
+    <div class="big">3 of 3</div>
+    <h1 style="font-size:26px">concepts recovered from Monday’s class.</h1>
+    <div class="grid">
+      <div class="card"><div class="mono">Time</div><div class="v">${time}</div></div>
+      <div class="card"><div class="mono">Right first try</div><div class="v">${firstTry} of ${steps.length}</div></div>
+      <div class="card"><div class="mono">Next check</div><div class="v">${day}</div></div>
+      <div class="card"><div class="mono">Study hall</div><div class="v">Logged</div></div>
+    </div>
+    <div class="advisor">
+      <span class="mono">What your advisor sees</span>
+      <div style="font-weight:600;font-size:16px">${strong ? 'Back to parity in Accounting II.' : 'Recovered, with a re-check scheduled.'}</div>
+      <div style="font-size:14px;line-height:1.4;color:#55524A">${strong ? 'No action needed. Day-3 and day-7 checks will confirm it stuck.' : 'Rebound will re-test the questions missed on the first try on ' + day + '.'}</div>
+    </div>
+    <div class="sub">A day-3 check brings back the ideas you found hardest, so they stick past the exam.</div>
+    <button class="btn ghost" id="again">Try the session again</button>
+  </div>
+  <div class="foot">Rebound · Built by Max Klein, Butler University<br>Scripted prototype. Live sessions are built from each course’s own materials.</div>`;
+  document.getElementById('again').onclick = () => { i = 0; firstTry = 0; intro(); window.scrollTo(0,0); };
+}
+
+intro();
+</script>
+</body>
+</html>
